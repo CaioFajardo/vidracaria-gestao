@@ -1,0 +1,792 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Vidraçaria Gestão | Controle de Pedidos e Orçamentos</title>
+  <style>
+    :root {
+      --bg: #f1f5f9;
+      --surface: #ffffff;
+      --primary: #0f172a;
+      --accent: #0284c7;
+      --accent-hover: #0369a1;
+      --text: #1e293b;
+      --muted: #64748b;
+      --border: #e2e8f0;
+      --danger: #dc2626;
+      --danger-bg: #fef2f2;
+      --warning: #d97706;
+      --warning-bg: #fffbeb;
+      --success: #16a34a;
+      --success-bg: #f0fdf4;
+      --fast-bg: #f3e8ff;
+      --fast-text: #7e22ce;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      line-height: 1.5;
+      padding-bottom: 40px;
+    }
+
+    header {
+      background-color: var(--primary);
+      color: #fff;
+      padding: 16px 24px;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    header h1 {
+      font-size: 1.25rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    header span.badge-header {
+      background: var(--accent);
+      font-size: 0.75rem;
+      padding: 2px 8px;
+      border-radius: 999px;
+      font-weight: 600;
+    }
+
+    .header-actions {
+      display: flex;
+      gap: 10px;
+    }
+
+    button {
+      cursor: pointer;
+      border: none;
+      border-radius: 6px;
+      font-weight: 600;
+      font-size: 0.875rem;
+      padding: 8px 14px;
+      transition: background 0.15s ease;
+    }
+
+    .btn-primary {
+      background-color: var(--accent);
+      color: #fff;
+    }
+
+    .btn-primary:hover {
+      background-color: var(--accent-hover);
+    }
+
+    .btn-secondary {
+      background-color: #334155;
+      color: #fff;
+    }
+
+    .btn-secondary:hover {
+      background-color: #475569;
+    }
+
+    .container {
+      max-width: 1150px;
+      margin: 24px auto;
+      padding: 0 16px;
+    }
+
+    /* Cards de Resumo */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    .stat-card {
+      background: var(--surface);
+      padding: 16px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+    }
+
+    .stat-card .label {
+      font-size: 0.8rem;
+      color: var(--muted);
+      text-transform: uppercase;
+      font-weight: 600;
+      letter-spacing: 0.03em;
+    }
+
+    .stat-card .value {
+      font-size: 1.75rem;
+      font-weight: 700;
+      margin-top: 4px;
+    }
+
+    .stat-card.danger .value { color: var(--danger); }
+    .stat-card.fast .value { color: var(--fast-text); }
+    .stat-card.success .value { color: var(--success); }
+
+    /* Barra de Filtros */
+    .toolbar {
+      background: var(--surface);
+      padding: 14px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+
+    .filters {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .filter-btn {
+      background: var(--bg);
+      color: var(--text);
+      border: 1px solid var(--border);
+      padding: 6px 12px;
+      font-size: 0.825rem;
+    }
+
+    .filter-btn.active {
+      background: var(--primary);
+      color: #fff;
+      border-color: var(--primary);
+    }
+
+    .search-input {
+      padding: 8px 12px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      font-size: 0.875rem;
+      min-width: 240px;
+    }
+
+    /* Tabela / Lista de Pedidos */
+    .table-wrapper {
+      background: var(--surface);
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      overflow-x: auto;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+      font-size: 0.9rem;
+    }
+
+    th {
+      background: #f8fafc;
+      padding: 12px 14px;
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      color: var(--muted);
+      border-bottom: 1px solid var(--border);
+    }
+
+    td {
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--border);
+      vertical-align: middle;
+    }
+
+    tr:last-child td {
+      border-bottom: none;
+    }
+
+    tr.concluido-row {
+      background-color: #f8fafc;
+      color: var(--muted);
+    }
+
+    tr.concluido-row .servico-titulo {
+      text-decoration: line-through;
+    }
+
+    .tag {
+      display: inline-block;
+      padding: 3px 8px;
+      border-radius: 999px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+
+    .tag-atrasado { background: var(--danger-bg); color: var(--danger); border: 1px solid #fecaca; }
+    .tag-hoje { background: var(--warning-bg); color: var(--warning); border: 1px solid #fde68a; }
+    .tag-prazo { background: var(--success-bg); color: var(--success); border: 1px solid #bbf7d0; }
+    .tag-concluido { background: #e2e8f0; color: #475569; }
+    .tag-rapido { background: var(--fast-bg); color: var(--fast-text); margin-top: 4px; }
+
+    .cliente-info strong {
+      display: block;
+      font-size: 0.95rem;
+    }
+
+    .cliente-info small {
+      color: var(--muted);
+      font-size: 0.8rem;
+    }
+
+    .actions-cell {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .btn-sm {
+      padding: 5px 9px;
+      font-size: 0.78rem;
+    }
+
+    .btn-wpp {
+      background-color: #16a34a;
+      color: #fff;
+    }
+
+    .btn-wpp:hover {
+      background-color: #15803d;
+    }
+
+    .btn-done {
+      background-color: #e2e8f0;
+      color: var(--text);
+    }
+
+    .btn-done:hover {
+      background-color: #cbd5e1;
+    }
+
+    .btn-del {
+      background-color: transparent;
+      color: var(--danger);
+      border: 1px solid #fecaca;
+    }
+
+    .btn-del:hover {
+      background-color: var(--danger-bg);
+    }
+
+    /* Modal */
+    .modal-backdrop {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.6);
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      z-index: 50;
+    }
+
+    .modal-backdrop.open {
+      display: flex;
+    }
+
+    .modal {
+      background: var(--surface);
+      width: 100%;
+      max-width: 500px;
+      border-radius: 10px;
+      padding: 20px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+    }
+
+    .modal h2 {
+      font-size: 1.15rem;
+      margin-bottom: 14px;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 8px;
+    }
+
+    .form-group {
+      margin-bottom: 12px;
+    }
+
+    .form-group label {
+      display: block;
+      font-size: 0.85rem;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+      width: 100%;
+      padding: 8px 10px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      font-size: 0.9rem;
+    }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .checkbox-group {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--fast-bg);
+      padding: 8px 10px;
+      border-radius: 6px;
+      color: var(--fast-text);
+      font-size: 0.85rem;
+      font-weight: 600;
+      margin-bottom: 14px;
+    }
+
+    .checkbox-group input {
+      width: auto;
+    }
+
+    .modal-footer {
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+      margin-top: 16px;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 32px;
+      color: var(--muted);
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>
+      Vidraçaria Gestão
+      <span class="badge-header">Controle Centralizado</span>
+    </h1>
+    <div class="header-actions">
+      <button class="btn-secondary" onclick="resetarExemplos()" title="Restaurar dados iniciais">Restaurar Exemplos</button>
+      <button class="btn-primary" onclick="abrirModal()">+ Novo Pedido / Orçamento</button>
+    </div>
+  </header>
+
+  <main class="container">
+    <!-- Resumo -->
+    <section class="stats-grid">
+      <div class="stat-card">
+        <div class="label">Pedidos Ativos</div>
+        <div class="value" id="stat-ativos">0</div>
+      </div>
+      <div class="stat-card danger">
+        <div class="label">Atrasados / Vence Hoje</div>
+        <div class="value" id="stat-urgentes">0</div>
+      </div>
+      <div class="stat-card fast">
+        <div class="label">Serviços Rápidos (Retrovisor/Reparo)</div>
+        <div class="value" id="stat-rapidos">0</div>
+      </div>
+      <div class="stat-card success">
+        <div class="label">Concluídos</div>
+        <div class="value" id="stat-concluidos">0</div>
+      </div>
+    </section>
+
+    <!-- Filtros e Busca -->
+    <section class="toolbar">
+      <div class="filters">
+        <button class="filter-btn active" onclick="setFiltro('ativos', this)">Pendentes / Em Produção</button>
+        <button class="filter-btn" onclick="setFiltro('atrasados', this)">Atrasados</button>
+        <button class="filter-btn" onclick="setFiltro('rapidos', this)">Serviços Rápidos</button>
+        <button class="filter-btn" onclick="setFiltro('orcamentos', this)">Aguardando Orçamento</button>
+        <button class="filter-btn" onclick="setFiltro('concluidos', this)">Concluídos</button>
+        <button class="filter-btn" onclick="setFiltro('todos', this)">Todos</button>
+      </div>
+      <input
+        type="text"
+        id="busca"
+        class="search-input"
+        placeholder="Buscar por cliente ou serviço..."
+        oninput="renderizar()"
+      />
+    </section>
+
+    <!-- Tabela de Ordens de Serviço -->
+    <section class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>Cliente / Contato</th>
+            <th>Serviço / Medidas</th>
+            <th>Etapa</th>
+            <th>Prazo</th>
+            <th>Ações</th>
+          </tr>
+        </thead>
+        <tbody id="lista-pedidos"></tbody>
+      </table>
+      <div id="empty-msg" class="empty-state" style="display: none;">
+        Nenhum registro encontrado para este filtro.
+      </div>
+    </section>
+  </main>
+
+  <!-- Modal Novo Pedido -->
+  <div class="modal-backdrop" id="modal-pedido">
+    <div class="modal">
+      <h2>Registrar Pedido ou Solicitação de Orçamento</h2>
+      <form id="form-pedido" onsubmit="salvarPedido(event)">
+        <div class="form-row">
+          <div class="form-group">
+            <label for="cliente">Nome do Cliente *</label>
+            <input type="text" id="cliente" required placeholder="Ex: Carlos Andrade" />
+          </div>
+          <div class="form-group">
+            <label for="telefone">Telefone / WhatsApp *</label>
+            <input type="text" id="telefone" required placeholder="Ex: (32) 99988-7766" />
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="servico">Descrição do Serviço e Medidas *</label>
+          <input type="text" id="servico" required placeholder="Ex: Lente retrovisor lado direito ou Box 1,20x1,90" />
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="etapa">Situação Atual</label>
+            <select id="etapa">
+              <option value="Aguardando Orçamento">Aguardando Orçamento</option>
+              <option value="Em Produção" selected>Em Produção / Corte</option>
+              <option value="Pronto para Retirada">Pronto para Retirada</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="prazo">Prazo Prometido *</label>
+            <input type="date" id="prazo" required />
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="responsavel">Responsável Técnico</label>
+          <select id="responsavel">
+            <option value="Proprietário">Proprietário</option>
+            <option value="Sócio / Oficina">Sócio / Oficina</option>
+            <option value="Balcão">Balcão</option>
+          </select>
+        </div>
+
+        <label class="checkbox-group">
+          <input type="checkbox" id="servicoRapido" />
+          Marcar como Serviço Rápido (Retrovisor, troca simples ou pequeno reparo)
+        </label>
+
+        <div class="modal-footer">
+          <button type="button" class="btn-done" onclick="fecharModal()">Cancelar</button>
+          <button type="submit" class="btn-primary">Salvar Registro</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    const STORAGE_KEY = 'vidracaria_ordens_v1';
+    let filtroAtual = 'ativos';
+
+    // Gera data relativa a hoje (diasOffset: -2 = 2 dias atrás, 0 = hoje, +3 = daqui 3 dias)
+    function dataRelativa(diasOffset) {
+      const d = new Date();
+      d.setDate(d.getDate() + diasOffset);
+      return d.toISOString().split('T')[0];
+    }
+
+    function obterDadosIniciais() {
+      return [
+        {
+          id: 101,
+          cliente: 'Marcos Vinícius',
+          telefone: '(32) 99812-4410',
+          servico: 'Troca de lente retrovisor esquerdo (Gol G6)',
+          etapa: 'Em Produção',
+          prazo: dataRelativa(-1),
+          responsavel: 'Sócio / Oficina',
+          servicoRapido: true,
+          concluido: false
+        },
+        {
+          id: 102,
+          cliente: 'Fernanda Oliveira',
+          telefone: '(32) 99934-1120',
+          servico: 'Orçamento: Box de banheiro vidro temperado incolor 1,35m x 1,90m',
+          etapa: 'Aguardando Orçamento',
+          prazo: dataRelativa(0),
+          responsavel: 'Proprietário',
+          servicoRapido: false,
+          concluido: false
+        },
+        {
+          id: 103,
+          cliente: 'Padaria Pão Quente',
+          telefone: '(32) 98845-9001',
+          servico: 'Tampo de vidro 8mm lapidado para balcão (2,10m x 0,60m)',
+          etapa: 'Em Produção',
+          prazo: dataRelativa(2),
+          responsavel: 'Proprietário',
+          servicoRapido: false,
+          concluido: false
+        },
+        {
+          id: 104,
+          cliente: 'Roberto Silva',
+          telefone: '(32) 99102-3344',
+          servico: 'Corte de espelho 4mm bisotê para banheiro (0,80m x 0,60m)',
+          etapa: 'Pronto para Retirada',
+          prazo: dataRelativa(0),
+          responsavel: 'Sócio / Oficina',
+          servicoRapido: true,
+          concluido: false
+        },
+        {
+          id: 105,
+          cliente: 'Clínica Bem Estar',
+          telefone: '(32) 99977-8855',
+          servico: 'Manutenção de mola hidráulica da porta principal',
+          etapa: 'Aguardando Orçamento',
+          prazo: dataRelativa(1),
+          responsavel: 'Proprietário',
+          servicoRapido: false,
+          concluido: false
+        },
+        {
+          id: 106,
+          cliente: 'Juliana Costa',
+          telefone: '(32) 98412-5509',
+          servico: 'Reparo em trinco de janela blindex 2 folhas',
+          etapa: 'Concluído',
+          prazo: dataRelativa(-3),
+          responsavel: 'Balcão',
+          servicoRapido: true,
+          concluido: true
+        }
+      ];
+    }
+
+    function carregarPedidos() {
+      const salvo = localStorage.getItem(STORAGE_KEY);
+      if (!salvo) {
+        const iniciais = obterDadosIniciais();
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(iniciais));
+        return iniciais;
+      }
+      return JSON.parse(salvo);
+    }
+
+    function salvarLista(lista) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(lista));
+    }
+
+    function statusPrazo(prazoStr, concluido) {
+      if (concluido) {
+        return { texto: 'Entregue', classe: 'tag-concluido', urgente: false, atrasado: false };
+      }
+      const hoje = new Date().toISOString().split('T')[0];
+      if (prazoStr < hoje) {
+        return { texto: 'Atrasado', classe: 'tag-atrasado', urgente: true, atrasado: true };
+      }
+      if (prazoStr === hoje) {
+        return { texto: 'Vence Hoje', classe: 'tag-hoje', urgente: true, atrasado: false };
+      }
+      return { texto: 'No Prazo', classe: 'tag-prazo', urgente: false, atrasado: false };
+    }
+
+    function formatarDataBR(iso) {
+      if (!iso) return '-';
+      const [ano, mes, dia] = iso.split('-');
+      return `${dia}/${mes}/${ano}`;
+    }
+
+    function setFiltro(novoFiltro, btn) {
+      filtroAtual = novoFiltro;
+      document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      renderizar();
+    }
+
+    function renderizar() {
+      const pedidos = carregarPedidos();
+      const termo = document.getElementById('busca').value.toLowerCase().trim();
+      const tbody = document.getElementById('lista-pedidos');
+      const emptyMsg = document.getElementById('empty-msg');
+
+      // Atualiza contadores
+      let ativos = 0, urgentes = 0, rapidos = 0, concluidos = 0;
+      pedidos.forEach(p => {
+        const st = statusPrazo(p.prazo, p.concluido);
+        if (p.concluido) {
+          concluidos++;
+        } else {
+          ativos++;
+          if (st.urgente) urgentes++;
+          if (p.servicoRapido) rapidos++;
+        }
+      });
+
+      document.getElementById('stat-ativos').textContent = ativos;
+      document.getElementById('stat-urgentes').textContent = urgentes;
+      document.getElementById('stat-rapidos').textContent = rapidos;
+      document.getElementById('stat-concluidos').textContent = concluidos;
+
+      // Filtra lista
+      const filtrados = pedidos.filter(p => {
+        const st = statusPrazo(p.prazo, p.concluido);
+        const matchTexto =
+          p.cliente.toLowerCase().includes(termo) ||
+          p.servico.toLowerCase().includes(termo);
+
+        if (!matchTexto) return false;
+        if (filtroAtual === 'ativos') return !p.concluido;
+        if (filtroAtual === 'atrasados') return !p.concluido && st.atrasado;
+        if (filtroAtual === 'rapidos') return !p.concluido && p.servicoRapido;
+        if (filtroAtual === 'orcamentos') return !p.concluido && p.etapa === 'Aguardando Orçamento';
+        if (filtroAtual === 'concluidos') return p.concluido;
+        return true;
+      });
+
+      // Ordena: não concluídos primeiro, depois por prazo mais próximo
+      filtrados.sort((a, b) => {
+        if (a.concluido !== b.concluido) return a.concluido ? 1 : -1;
+        return a.prazo.localeCompare(b.prazo);
+      });
+
+      tbody.innerHTML = '';
+      if (filtrados.length === 0) {
+        emptyMsg.style.display = 'block';
+        return;
+      }
+      emptyMsg.style.display = 'none';
+
+      filtrados.forEach(p => {
+        const st = statusPrazo(p.prazo, p.concluido);
+        const tr = document.createElement('tr');
+        if (p.concluido) tr.className = 'concluido-row';
+
+        tr.innerHTML = `
+          <td class="cliente-info">
+            <strong>${p.cliente}</strong>
+            <small>${p.telefone} • Resp: ${p.responsavel}</small>
+          </td>
+          <td>
+            <div class="servico-titulo">${p.servico}</div>
+            ${p.servicoRapido ? '<span class="tag tag-rapido">⚡ Serviço Rápido</span>' : ''}
+          </td>
+          <td>${p.concluido ? 'Entregue' : p.etapa}</td>
+          <td>
+            <div>${formatarDataBR(p.prazo)}</div>
+            <span class="tag ${st.classe}">${st.texto}</span>
+          </td>
+          <td>
+            <div class="actions-cell">
+              <button class="btn-sm btn-wpp" onclick="enviarWhatsApp(${p.id})" title="Gerar resumo para WhatsApp">WhatsApp</button>
+              <button class="btn-sm btn-done" onclick="alternarConcluido(${p.id})">
+                ${p.concluido ? 'Reabrir' : 'Concluir'}
+              </button>
+              <button class="btn-sm btn-del" onclick="excluirPedido(${p.id})" title="Remover">X</button>
+            </div>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function abrirModal() {
+      document.getElementById('prazo').value = dataRelativa(2);
+      document.getElementById('modal-pedido').classList.add('open');
+    }
+
+    function fecharModal() {
+      document.getElementById('form-pedido').reset();
+      document.getElementById('modal-pedido').classList.remove('open');
+    }
+
+    function salvarPedido(e) {
+      e.preventDefault();
+      const pedidos = carregarPedidos();
+      const novo = {
+        id: Date.now(),
+        cliente: document.getElementById('cliente').value.trim(),
+        telefone: document.getElementById('telefone').value.trim(),
+        servico: document.getElementById('servico').value.trim(),
+        etapa: document.getElementById('etapa').value,
+        prazo: document.getElementById('prazo').value,
+        responsavel: document.getElementById('responsavel').value,
+        servicoRapido: document.getElementById('servicoRapido').checked,
+        concluido: false
+      };
+      pedidos.push(novo);
+      salvarLista(pedidos);
+      fecharModal();
+      renderizar();
+    }
+
+    function alternarConcluido(id) {
+      const pedidos = carregarPedidos();
+      const item = pedidos.find(p => p.id === id);
+      if (item) {
+        item.concluido = !item.concluido;
+        salvarLista(pedidos);
+        renderizar();
+      }
+    }
+
+    function excluirPedido(id) {
+      if (!confirm('Deseja realmente excluir este registro?')) return;
+      const pedidos = carregarPedidos().filter(p => p.id !== id);
+      salvarLista(pedidos);
+      renderizar();
+    }
+
+    function enviarWhatsApp(id) {
+      const p = carregarPedidos().find(item => item.id === id);
+      if (!p) return;
+      const numeros = p.telefone.replace(/\D/g, '');
+      const fone = numeros.startsWith('55') ? numeros : `55${numeros}`;
+      const texto = encodeURIComponent(
+        `*Vidraçaria - Resumo de Atendimento*\n` +
+        `Cliente: ${p.cliente}\n` +
+        `Serviço: ${p.servico}\n` +
+        `Status: ${p.concluido ? 'Concluído' : p.etapa}\n` +
+        `Prazo previsto: ${formatarDataBR(p.prazo)}`
+      );
+      window.open(`https://wa.me/${fone}?text=${texto}`, '_blank');
+    }
+
+    function resetarExemplos() {
+      localStorage.removeItem(STORAGE_KEY);
+      renderizar();
+    }
+
+    // Inicializa a tela
+    renderizar();
+  </script>
+</body>
+</html>
